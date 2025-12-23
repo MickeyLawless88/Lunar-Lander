@@ -1,0 +1,943 @@
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page    1
+PROGRAM LUNARL     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+Source file Listing
+
+        1  C ****************************************************************
+        2  C *                  LUNAR LANDER SIMULATION                     *
+        3  C *              ANSI FORTRAN 77 Implementation                  *
+        4  C *          with Enhanced Character Graphics Display            *
+        5  C *                                                              *
+        6  C *             Mickey W. Lawless  Dec.21-2025                   *
+        7  C *          Compiler: Lahey Personal FORTRAN 77                 *
+        8  C *                                                              *
+        9  C ****************************************************************
+       10  
+       11        PROGRAM LUNARL
+       12      
+       13        IMPLICIT NONE
+       14        INTEGER T, A, LANDST
+       15        REAL H, V, V1, F, B, D
+       16        
+       17  C     Clear screen and display title
+       18      
+       19        CALL CLRSCR
+       20        WRITE(*,100)
+       21  100   FORMAT(/,
+       22       >       '             LUNAR LANDING SIMULATION',/,
+       23       >       '             ----- ------- ----------',/)
+       24        WRITE(*,110)
+       25  110   FORMAT(' DO YOU WANT INSTRUCTIONS',/,
+       26       >       ' (Type 0 for NO): ')
+       27        READ(*,*) A
+       28        
+       29        IF (A .NE. 0) THEN
+       30           CALL INSTRS
+       31        END IF
+       32        
+       33  C     Main game loop - restart point
+       34  
+       35  200   CONTINUE
+       36        
+       37        WRITE(*,210)
+       38  210   FORMAT(//,' BEGINNING LANDING PROCEDURE.........',//,
+       39       >       ' G O O D  L U C K ! ! !',///)
+       40        
+       41  C     Initialize variables
+       42  
+       43        T = 0
+       44        H = 500.0
+       45        V = 50.0
+       46        F = 120.0
+       47        
+       48  C     Display header
+       49  
+       50        WRITE(*,220)
+       51  220   FORMAT(' SEC   FEET   SPEED   FUEL',5X,
+       52       >       'PLOT OF DISTANCE',/)
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page    2
+PROGRAM LUNARL     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+Source file Listing
+
+       53        
+       54  C     Game loop - main landing sequence
+       55  
+       56  300   CONTINUE
+       57        
+       58  C     Display status with plot
+       59  
+       60        CALL DSPSTA(T, H, V, F)
+       61        
+       62  C     Check if fuel remains
+       63  
+       64        IF (F .GT. 0.0) THEN
+       65           WRITE(*,310) 
+       66  310      FORMAT(' ? ')
+       67           READ(*,*) B
+       68        ELSE
+       69           B = 0.0
+       70        END IF
+       71        
+       72  C     Limit fuel burn rate
+       73  
+       74        IF (B .LT. 0.0) B = 0.0
+       75        IF (B .GT. 30.0) B = 30.0
+       76        IF (B .GT. F) B = F
+       77        
+       78  C     Physics calculations
+       79  
+       80        V1 = V - B + 5.0
+       81        F = F - B
+       82        H = H - 0.5 * (V + V1)
+       83        
+       84  C     Check for touchdown
+       85  
+       86        IF (H .LE. 0.0) THEN
+       87           GOTO 400
+       88        END IF
+       89        
+       90        T = T + 1
+       91        V = V1
+       92        
+       93  C     Check for out of fuel
+       94  
+       95        IF (F .LE. 0.0) THEN
+       96           WRITE(*,320)
+       97  320      FORMAT(/,' ***OUT OF FUEL***',/)
+       98           GOTO 350
+       99        END IF
+      100        
+      101        GOTO 300
+      102        
+      103  C     Out of fuel loop
+      104  
+      105  350   CONTINUELahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page    3
+PROGRAM LUNARL     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+Source file Listing
+
+
+      106        CALL DSPSTA(T, H, V, F)
+      107        B = 0.0
+      108        V1 = V - B + 5.0
+      109        F = F - B
+      110        H = H - 0.5 * (V + V1)
+      111        
+      112        IF (H .LE. 0.0) THEN
+      113           GOTO 400
+      114        END IF
+      115        
+      116        T = T + 1
+      117        V = V1
+      118        GOTO 350
+      119        
+      120  C     Touchdown sequence
+      121  
+      122  400   CONTINUE
+      123        
+      124        WRITE(*,410)
+      125  410   FORMAT(/,' ****CONTACT****',/)
+      126        
+      127  C     Calculate exact touchdown time and velocity
+      128  
+      129        H = H + 0.5 * (V + V1)
+      130        
+      131        IF (ABS(B - 5.0) .LT. 0.001) THEN
+      132           D = H / V
+      133        ELSE
+      134           D = (-V + SQRT(V*V + H*(10.0 - 2.0*B))) / (5.0 - B)
+      135        END IF
+      136        
+      137        V1 = V + (5.0 - B) * D
+      138        
+      139  C     Display landing statistics
+      140  
+      141        WRITE(*,420) REAL(T) + D, V1, F
+      142  420   FORMAT('    TOUCHDOWN AT ',F6.2,' SECONDS.',/,
+      143       >       '    LANDING VELOCITY = ',F6.1,' FT/SEC',/,
+      144       >       '    ',F5.1,' UNITS OF FUEL REMAINING.',/)
+      145        
+      146  C     Draw landing scene based on outcome
+      147  
+      148        LANDST = 0
+      149        IF (ABS(V1) .LT. 0.01) THEN
+      150           LANDST = 1
+      151        ELSE IF (ABS(V1) .LT. 2.0) THEN
+      152           LANDST = 2
+      153        ELSE
+      154           LANDST = 3
+      155        END IF
+      156        
+      157        CALL DRAWLD(LANDST)
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page    4
+PROGRAM LUNARL     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+Source file Listing
+
+      158        
+      159  C     Display landing evaluation
+      160  
+      161        IF (LANDST .EQ. 1) THEN
+      162           WRITE(*,430)
+      163  430      FORMAT(/,' CONGRATULATIONS!!!  A PERFECT LANDING!',/,
+      164       >          ' YOUR LICENSE WILL BE RENEWED.........LATER.',/)
+      165        ELSE IF (LANDST .EQ. 2) THEN
+      166           WRITE(*,440)
+      167  440      FORMAT(/,' WELL......THAT WAS OK.  BUT NOT SPECTACULAR...',/)
+      168        ELSE
+      169           WRITE(*,450)
+      170  450      FORMAT(/,' ***** SORRY, BUT YOU BLEW IT KIDO!!!!!',/,
+      171       >          ' THIS WAS OUR ONLY CHANCE TO MAKE CONTACT WITH',/,
+      172       >          ' EXTRATERRESTRIAL BEINGS.  APPROPRIATE CONDOLENCES',/,
+      173       >          ' MIGHT BE SENT TO YOUR NEXT OF KIN.',/)
+      174        END IF
+      175        
+      176  C     Ask for another mission
+      177  
+      178        WRITE(*,460)
+      179  460   FORMAT(/,' ANOTHER MISSION ANYONE',/,
+      180       >       ' (Type 1 if YES): ')
+      181        READ(*,*) A
+      182        
+      183        IF (A .EQ. 1) THEN
+      184           CALL CLRSCR
+      185           GOTO 200
+      186        END IF
+      187        
+      188        WRITE(*,470)
+      189  470   FORMAT(/,' CONTROL OUT.',//)
+      190        
+      191        STOP
+      192        END
+
+Storage Area Definitions
+_______________________________________________________________________________________________________________________________Number  Name or Description     Segment Name          Hex Length
+
+    0   Local Stack                                      0034
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page    5
+PROGRAM LUNARL     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+
+Symbol Cross-Reference Listing - Reference types:
+ =-Assigned; /-DATA; d-DO Index; f-FORMAT Usage; i-Input; o-Output; r-Argument; s-Specified; u-Used
+_______________________________________________________________________________________________________________________________Name     Type       Class      Area Offset  Line (I include file)<reference type - see above>
+
+A        INTEGER    VARIABLE    0  BP+FFF0    14s   27i   29u  181i  183u
+Abs                 GENERIC                  131u  149u  151u
+B        REAL       VARIABLE    0  BP+FFD8    15s   67i   69=   74u   74=   75u   75=   76u   76=   80u   81u  107=  108u  109u
+                                             131u  134u  134u  137u
+Clrscr              SUBROUTINE                19u  184u
+D        REAL       VARIABLE    0  BP+FFD4    15s  132=  134=  137u  141u
+Drawld              SUBROUTINE               157u
+Dspsta              SUBROUTINE                60u  106u
+F        REAL       VARIABLE    0  BP+FFDC    15s   46=   60r   64u   76u   76u   81=   81u   95u  106r  109=  109u  141o
+H        REAL       VARIABLE    0  BP+FFE8    15s   44=   60r   82=   82u   86u  106r  110=  110u  112u  129=  129u  132u  134u
+Instrs              SUBROUTINE                30u
+Landst   INTEGER    VARIABLE    0  BP+FFEC    14s  148=  150=  152=  154=  157r  161u  165u
+Lunarl              PROGRAM                   11s
+Real     REAL       INTRINSIC                141u
+Sqrt                GENERIC                  134u
+T        INTEGER    VARIABLE    0  BP+FFF4    14s   43=   60r   90=   90u  106r  116=  116u  141u
+V        REAL       VARIABLE    0  BP+FFE4    15s   45=   60r   80u   82u   91=  106r  108u  110u  117=  129u  132u  134u  134u
+                                             134u  137u
+V1       REAL       VARIABLE    0  BP+FFE0    15s   80=   82u   91u  108=  110u  117u  129u  137=  141o  149u  151u
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page    6
+PROGRAM LUNARL     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+
+Label Cross-Reference Listing - Reference types:
+ a-ASSIGN; d-DO Label; @-FORMAT Statement; f-FORMAT Usage; g-GOTO; i-IF; s-Specified; r-Argument
+_______________________________________________________________________________________________________________________________Label        Line (I include file)<reference type - see above>
+
+00100         20f   23@
+00110         24f   26@
+00200         35s  185g
+00210         37f   39@
+00220         50f   52@
+00300         56s  101g
+00310         65f   66@
+00320         96f   97@
+00350         98g  105s  118g
+00400         87g  113g  122s
+00410        124f  125@
+00420        141f  144@
+00430        162f  164@
+00440        166f  167@
+00450        169f  173@
+00460        178f  180@
+00470        188f  189@
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page    7
+SUBROUTINE INSTRS     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+Source file Listing
+
+      193        
+      194        
+      195  C     ****************************************************************
+      196  C     *                    SUBROUTINE INSTRS                         *
+      197  C     *              Display game instructions                       *
+      198  C     ****************************************************************
+      199  
+      200        SUBROUTINE INSTRS
+      201  
+      202        IMPLICIT NONE
+      203        CHARACTER*1 CH
+      204        
+      205        WRITE(*,100)
+      206  100   FORMAT(//,
+      207       >       ' YOU ARE LANDING ON THE MOON AND HAVE TAKEN OVER MANUAL',
+      208       >       /,
+      209       >       ' CONTROL 500 FEET ABOVE A GOOD LANDING SPOT. YOU HAVE A',
+      210       >       /,
+      211       >       ' DOWNWARD VELOCITY OF 50 FT/SEC.  120 UNITS OF FUEL ',
+      212       >       'REMAIN.',//,
+      213       >       ' HERE ARE THE RULES THAT GOVERN YOUR SPACE VEHICLE:',/,
+      214       >       ' (1) AFTER EACH SECOND, THE HEIGHT, VELOCITY, AND ',
+      215       >       'REMAINING',/,
+      216       >       '     FUEL WILL BE REPORTED.',/,
+      217       >       ' (2) AFTER THE REPORT, A "?" WILL BE TYPED.  ENTER THE',
+      218       >       /,
+      219       >       '     NUMBER OF UNITS OF FUEL YOU WISH TO BURN DURING THE'
+      220       >       ,/,
+      221       >       '     NEXT SECOND.  EACH UNIT OF FUEL WILL SLOW YOUR ',
+      222       >       'DESCENT',/,
+      223       >       ' (3) THE MAXIMUM THRUST OF YOUR ENGINE IS 30 FT/SEC/SEC ',
+      224       >       'OR',/,
+      225       >       '     30 UNITS OF FUEL PER SECOND',/,
+      226       >       ' (4) WHEN YOU CONTACT THE LUNAR SURFACE, YOUR DESCENT ',
+      227       >       'ENGINE',/,
+      228       >       '     WILL AUTOMATICALLY SHUT OFF AND YOU WILL BE GIVEN A'
+      229       >       ,/,
+      230       >       '     REPORT OF YOUR LANDING SPEED AND REMAINING FUEL',/,
+      231       >       ' (5) IF YOU RUN OUT OF FUEL, THE "?" WILL NO LONGER ',
+      232       >       'APPEAR',/,
+      233       >       '     BUT YOUR SECOND BY SECOND REPORT WILL CONTINUE ',
+      234       >       'UNTIL',/,
+      235       >       '     YOU CONTACT LUNAR SURFACE.',//,
+      236       >       ' HIT <RETURN> TO CONTINUE...')
+      237        
+      238        READ(*,'(A)') CH
+      239        
+      240        RETURN
+      241        END
+WARNING - CHARACTER*1 VARIABLE (CH) assigned a value, never used, line 238.
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page    8
+SUBROUTINE INSTRS     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+
+Storage Area Definitions
+_______________________________________________________________________________________________________________________________Number  Name or Description     Segment Name          Hex Length
+
+    0   Local Stack                                      0011
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page    9
+SUBROUTINE INSTRS     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+
+Symbol Cross-Reference Listing - Reference types:
+ =-Assigned; /-DATA; d-DO Index; f-FORMAT Usage; i-Input; o-Output; r-Argument; s-Specified; u-Used
+_______________________________________________________________________________________________________________________________Name     Type       Class      Area Offset  Line (I include file)<reference type - see above>
+
+Ch       CHAR*1     VARIABLE    0  BP+FFF7   203s  238i
+Instrs              SUBROUTINE               200s
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   10
+SUBROUTINE INSTRS     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+
+Label Cross-Reference Listing - Reference types:
+ a-ASSIGN; d-DO Label; @-FORMAT Statement; f-FORMAT Usage; g-GOTO; i-IF; s-Specified; r-Argument
+_______________________________________________________________________________________________________________________________Label        Line (I include file)<reference type - see above>
+
+00100        205f  236@
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   11
+SUBROUTINE DSPSTA     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+Source file Listing
+
+      242        
+      243        
+      244  C     ****************************************************************
+      245  C     *                    SUBROUTINE DSPSTA                         *
+      246  C     *       Display status with distance plot indicator            *
+      247  C     ****************************************************************
+      248        
+      249        SUBROUTINE DSPSTA(T, H, V, F)
+      250        
+      251        IMPLICIT NONE
+      252        INTEGER T, PLTPOS, I
+      253        REAL H, V, F
+      254        CHARACTER*80 LINE
+      255        
+      256  C     Calculate plot position (29 to 80)
+      257        
+      258        PLTPOS = INT(H / 12.0) + 29
+      259        IF (PLTPOS .GT. 80) PLTPOS = 80
+      260        IF (PLTPOS .LT. 29) PLTPOS = 29
+      261        
+      262  C     Build output line with plot indicator
+      263        
+      264        WRITE(LINE,100) T, H, V, F
+      265  100   FORMAT(I3,F8.0,F8.0,F8.0,'     I')
+      266        
+      267  C     Add spaces and asterisk for plot
+      268        
+      269        DO 200 I = 29, PLTPOS-1
+      270           LINE(I:I) = ' '
+      271  200   CONTINUE
+      272        
+      273        IF (PLTPOS .LE. 80) THEN
+      274           LINE(PLTPOS:PLTPOS) = '*'
+      275           WRITE(*,'(A)') LINE(1:PLTPOS)
+      276        ELSE
+      277           WRITE(*,'(A)') LINE(1:29)
+      278        END IF
+      279        
+      280        RETURN
+      281        
+      282        END
+
+Storage Area Definitions
+_______________________________________________________________________________________________________________________________Number  Name or Description     Segment Name          Hex Length
+
+    0   Local Stack                                      006C
+
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   12
+SUBROUTINE DSPSTA     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+
+Symbol Cross-Reference Listing - Reference types:
+ =-Assigned; /-DATA; d-DO Index; f-FORMAT Usage; i-Input; o-Output; r-Argument; s-Specified; u-Used
+_______________________________________________________________________________________________________________________________Name     Type       Class      Area Offset  Line (I include file)<reference type - see above>
+
+Dspsta              SUBROUTINE               249s
+F        REAL       VARIABLE                 249r  253s  264o
+H        REAL       VARIABLE                 249r  253s  258u  264o
+I        INTEGER    VARIABLE    0  BP+FFF0   252s  269d  270u  270u
+Int      INTEGER    INTRINSIC                258u
+Line     CHAR*80    VARIABLE    0  BP+FFA0   254s  264u  270=  274=  275u  277u
+Pltpos   INTEGER    VARIABLE    0  BP+FFF4   252s  258=  259u  259=  260u  260=  269u  273u  274u  274u  275u
+T        INTEGER    VARIABLE                 249r  252s  264o
+V        REAL       VARIABLE                 249r  253s  264o
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   13
+SUBROUTINE DSPSTA     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+
+Label Cross-Reference Listing - Reference types:
+ a-ASSIGN; d-DO Label; @-FORMAT Statement; f-FORMAT Usage; g-GOTO; i-IF; s-Specified; r-Argument
+_______________________________________________________________________________________________________________________________Label        Line (I include file)<reference type - see above>
+
+00100        264f  265@
+00200        269d  271s
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   14
+SUBROUTINE DRAWLD     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+Source file Listing
+
+      283        
+      284        
+      285  C     ****************************************************************
+      286  C     *                    SUBROUTINE DRAWLD                         *
+      287  C     *         Draw lunar lander scene with proper alignment        *
+      288  C     ****************************************************************
+      289        
+      290        SUBROUTINE DRAWLD(STATUS)
+      291        
+      292        IMPLICIT NONE
+      293        INTEGER STATUS, I, J, K
+      294        CHARACTER*1 SCREEN(24,70)
+      295        INTEGER STARX(9), STARY(9)
+      296        CHARACTER*12 EARTH(3), MOON(3)
+      297        INTEGER CRATX(6), CRATY(6)
+      298        CHARACTER*1 CRATC(6)
+      299        INTEGER ROCKX(6)
+      300        
+      301        DATA STARX /5, 12, 20, 28, 35, 42, 50, 58, 65/
+      302        DATA STARY /1, 2, 1, 2, 1, 2, 1, 2, 1/
+      303        DATA EARTH /'  .--. ', ' / o  \', ' \___/ '/
+      304        DATA MOON  /'  ( )   ', ' / o \ ', ' \___/ '/
+      305        DATA CRATX /10, 25, 25, 45, 45, 60/
+      306        DATA CRATY /19, 19, 18, 19, 18, 19/
+      307        DATA CRATC /'o', 'O', '^', 'O', '^', 'o'/
+      308        DATA ROCKX /15, 16, 35, 36, 55, 56/
+      309        
+      310  C     Initialize screen with spaces
+      311        
+      312        DO 100 I = 1, 24
+      313           DO 110 J = 1, 70
+      314              SCREEN(I,J) = ' '
+      315  110      CONTINUE
+      316  100   CONTINUE
+      317        
+      318  C     Draw starfield
+      319        
+      320        DO 120 K = 1, 9
+      321           SCREEN(STARY(K),STARX(K)) = '*'
+      322  120   CONTINUE
+      323        
+      324  C     Draw Earth (starting at row 3, col 8)
+      325        
+      326        DO 130 I = 1, 3
+      327           DO 140 J = 1, 7
+      328              SCREEN(I+2,J+7) = EARTH(I)(J:J)
+      329  140      CONTINUE
+      330  130   CONTINUE
+      331        
+      332  C     Draw Moon (starting at row 3, col 60)
+      333        
+      334        DO 150 I = 1, 3
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   15
+SUBROUTINE DRAWLD     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+Source file Listing
+
+      335           DO 160 J = 1, 7
+      336              SCREEN(I+2,J+59) = MOON(I)(J:J)
+      337  160      CONTINUE
+      338  150   CONTINUE
+      339        
+      340  C     Draw lunar surface
+      341        
+      342        DO 200 J = 1, 70
+      343           SCREEN(20,J) = '='
+      344           SCREEN(21,J) = '#'
+      345           SCREEN(22,J) = '#'
+      346           SCREEN(23,J) = 'X'
+      347           SCREEN(24,J) = 'X'
+      348  200   CONTINUE
+      349        
+      350  C     Add craters
+      351        
+      352        DO 210 K = 1, 6
+      353           SCREEN(CRATY(K),CRATX(K)) = CRATC(K)
+      354  210   CONTINUE
+      355        
+      356  C     Add rocks
+      357        
+      358        DO 220 K = 1, 6
+      359           SCREEN(19,ROCKX(K)) = '^'
+      360  220   CONTINUE
+      361        
+      362        IF (STATUS .EQ. 1) THEN
+      363  C        Perfect landing - centered lander
+      364           CALL DRWPRF(SCREEN)
+      365        ELSE IF (STATUS .EQ. 2) THEN
+      366  C        Acceptable landing - tilted lander
+      367           CALL DRWDMG(SCREEN)
+      368        ELSE
+      369  C        Crash landing - explosion
+      370           CALL DRWCSH(SCREEN)
+      371        END IF
+      372        
+      373  C     Display the screen
+      374        
+      375        DO 300 I = 1, 24
+      376           WRITE(*,'(70A1)') (SCREEN(I,J), J=1,70)
+      377  300   CONTINUE
+      378        
+      379        RETURN
+      380        END
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   16
+SUBROUTINE DRAWLD     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+
+Storage Area Definitions
+_______________________________________________________________________________________________________________________________Number  Name or Description     Segment Name          Hex Length
+
+    0   Local Stack                                      06B8
+    1   SAVEd Local Data        @DRAWLD@00               00DE
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   17
+SUBROUTINE DRAWLD     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+
+Symbol Cross-Reference Listing - Reference types:
+ =-Assigned; /-DATA; d-DO Index; f-FORMAT Usage; i-Input; o-Output; r-Argument; s-Specified; u-Used
+_______________________________________________________________________________________________________________________________Name     Type       Class      Area Offset  Line (I include file)<reference type - see above>
+
+Cratc    CHAR*1     ARRAY       1    00C0    298s  307/  353u
+Cratx    INTEGER    ARRAY       1    0090    297s  305/  353u
+Craty    INTEGER    ARRAY       1    00A8    297s  306/  353u
+Drawld              SUBROUTINE               290s
+Drwcsh              SUBROUTINE               370u
+Drwdmg              SUBROUTINE               367u
+Drwprf              SUBROUTINE               364u
+Earth    CHAR*12    ARRAY       1    0048    296s  303/  328u
+I        INTEGER    VARIABLE    0  BP+FFF4   293s  312d  314u  326d  328u  328u  334d  336u  336u  375d  376u
+J        INTEGER    VARIABLE    0  BP+FFF0   293s  313d  314u  327d  328u  328u  328u  335d  336u  336u  336u  342d  343u  344u
+                                             345u  346u  347u  376d  376u
+K        INTEGER    VARIABLE    0  BP+FFEC   293s  320d  321u  321u  352d  353u  353u  353u  358d  359u
+Moon     CHAR*12    ARRAY       1    006C    296s  304/  336u
+Rockx    INTEGER    ARRAY       1    00C6    299s  308/  359u
+Screen   CHAR*1     ARRAY       0  BP+F95C   294s  314=  321=  328=  336=  343=  344=  345=  346=  347=  353=  359=  364r  367r
+                                             370r  376u
+Starx    INTEGER    ARRAY       1    0000    295s  301/  321u
+Stary    INTEGER    ARRAY       1    0024    295s  302/  321u
+Status   INTEGER    VARIABLE                 290r  293s  362u  365u
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   18
+SUBROUTINE DRAWLD     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+
+Label Cross-Reference Listing - Reference types:
+ a-ASSIGN; d-DO Label; @-FORMAT Statement; f-FORMAT Usage; g-GOTO; i-IF; s-Specified; r-Argument
+_______________________________________________________________________________________________________________________________Label        Line (I include file)<reference type - see above>
+
+00100        312d  316s
+00110        313d  315s
+00120        320d  322s
+00130        326d  330s
+00140        327d  329s
+00150        334d  338s
+00160        335d  337s
+00200        342d  348s
+00210        352d  354s
+00220        358d  360s
+00300        375d  377s
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   19
+SUBROUTINE DRWPRF     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+Source file Listing
+
+      381        
+      382        
+      383  C     ****************************************************************
+      384  C     *                 SUBROUTINE DRWPRF                            *
+      385  C     *           Draw perfect landing spacecraft                    *
+      386  C     ****************************************************************
+      387        
+      388        SUBROUTINE DRWPRF(SCREEN)
+      389        
+      390        IMPLICIT NONE
+      391        CHARACTER*1 SCREEN(24,70)
+      392        INTEGER R, C, I, J, K
+      393        CHARACTER*17 BANNER
+      394        CHARACTER*11 CRAFT(12)
+      395        INTEGER DUSTX(6)
+      396        
+      397        DATA BANNER /'*** PERFECT! ***'/
+      398        DATA CRAFT /'     |     ', '     |     ', '    /-\    ',
+      399       >            '    | O |  ', '   /=====\ ', '   | [o] | ',
+      400       >            '   | USA | ', '  /===H===\', '    (V)   ',
+      401       >            '  /|     |\', ' [==]   [==]', '  .:.   .:. '/
+      402        DATA DUSTX /28, 29, 30, 37, 38, 39/
+      403        
+      404        R = 10
+      405        C = 33
+      406        
+      407  C     Success banner
+      408        DO 100 J = 1, 17
+      409           SCREEN(R-2,C-8+J-1) = BANNER(J:J)
+      410  100   CONTINUE
+      411        
+      412  C     Draw spacecraft using data statements
+      413        DO 110 I = 1, 12
+      414           DO 120 J = 1, 11
+      415              IF (CRAFT(I)(J:J) .NE. ' ') THEN
+      416                 SCREEN(R-2+I,C-5+J-1) = CRAFT(I)(J:J)
+      417              END IF
+      418  120      CONTINUE
+      419  110   CONTINUE
+      420        
+      421  C     Add dust clouds
+      422        DO 130 K = 1, 3
+      423           SCREEN(R+11,DUSTX(K)) = '.'
+      424           IF (DUSTX(K)+1 .LE. 30) SCREEN(R+11,DUSTX(K)+1) = ':'
+      425  130   CONTINUE
+      426        DO 140 K = 4, 6
+      427           SCREEN(R+11,DUSTX(K)) = '.'
+      428           IF (DUSTX(K)+1 .LE. 39) SCREEN(R+11,DUSTX(K)+1) = ':'
+      429  140   CONTINUE
+      430        
+      431        RETURN
+      432        END
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   20
+SUBROUTINE DRWPRF     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+
+Storage Area Definitions
+_______________________________________________________________________________________________________________________________Number  Name or Description     Segment Name          Hex Length
+
+    0   Local Stack                                      0030
+    1   SAVEd Local Data        @DRAWLD@00               018B
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   21
+SUBROUTINE DRWPRF     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+
+Symbol Cross-Reference Listing - Reference types:
+ =-Assigned; /-DATA; d-DO Index; f-FORMAT Usage; i-Input; o-Output; r-Argument; s-Specified; u-Used
+_______________________________________________________________________________________________________________________________Name     Type       Class      Area Offset  Line (I include file)<reference type - see above>
+
+Banner   CHAR*17    VARIABLE    1    00DE    393s  397/  409u
+C        INTEGER    VARIABLE                 392s  405=  409u  416u
+Craft    CHAR*11    ARRAY       1    00EF    394s  398/  415u  416u
+Drwprf              SUBROUTINE               388s
+Dustx    INTEGER    ARRAY       1    0173    395s  402/  423u  424u  424u  427u  428u  428u
+I        INTEGER    VARIABLE    0  BP+FFF4   392s  413d  415u  416u  416u
+J        INTEGER    VARIABLE    0  BP+FFF0   392s  408d  409u  409u  409u  414d  415u  415u  416u  416u  416u
+K        INTEGER    VARIABLE    0  BP+FFEC   392s  422d  423u  424u  424u  426d  427u  428u  428u
+R        INTEGER    VARIABLE                 392s  404=  409u  416u  423u  424u  427u  428u
+Screen   CHAR*1     ARRAY                    388r  391s  409=  416=  423=  424=  427=  428=
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   22
+SUBROUTINE DRWPRF     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+
+Label Cross-Reference Listing - Reference types:
+ a-ASSIGN; d-DO Label; @-FORMAT Statement; f-FORMAT Usage; g-GOTO; i-IF; s-Specified; r-Argument
+_______________________________________________________________________________________________________________________________Label        Line (I include file)<reference type - see above>
+
+00100        408d  410s
+00110        413d  419s
+00120        414d  418s
+00130        422d  425s
+00140        426d  429s
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   23
+SUBROUTINE DRWDMG     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+Source file Listing
+
+      433        
+      434        
+      435  C     ****************************************************************
+      436  C     *                 SUBROUTINE DRWDMG                            *
+      437  C     *            Draw damaged landing spacecraft                   *
+      438  C     ****************************************************************
+      439        
+      440        SUBROUTINE DRWDMG(SCREEN)
+      441        
+      442        IMPLICIT NONE
+      443        CHARACTER*1 SCREEN(24,70)
+      444        INTEGER R, C, I, J
+      445        CHARACTER*10 CRAFT(11)
+      446        INTEGER DEBX(4), DEBY(4)
+      447        CHARACTER*1 DEBC(4)
+      448        
+      449        DATA CRAFT /'     .    ', '     /    ', '    /-\   ',
+      450       >            '   / * |  ', '  /=====\ ', '  | USA | ',
+      451       >            '  \=~==/  ', '   (/)    ', ' /|~   |\ ',
+      452       >            '/==    ==\', '      [==]'/
+      453        DATA DEBX /29, 40, 43, 44/
+      454        DATA DEBY /19, 19, 20, 19/
+      455        DATA DEBC /'-', '.', ':', 'o'/
+      456        
+      457        R = 11
+      458        C = 33
+      459        
+      460  C     Draw damaged spacecraft using data statements
+      461        DO 100 I = 1, 11
+      462           DO 110 J = 1, 10
+      463              IF (CRAFT(I)(J:J) .NE. ' ') THEN
+      464                 SCREEN(R-1+I,C-4+J-1) = CRAFT(I)(J:J)
+      465              END IF
+      466  110      CONTINUE
+      467  100   CONTINUE
+      468        
+      469  C     Add scattered debris
+      470        DO 120 I = 1, 4
+      471           SCREEN(DEBY(I),DEBX(I)) = DEBC(I)
+      472  120   CONTINUE
+      473        
+      474        RETURN
+      475        END
+
+Storage Area Definitions
+_______________________________________________________________________________________________________________________________Number  Name or Description     Segment Name          Hex Length
+
+    0   Local Stack                                      002C
+    1   SAVEd Local Data        @DRAWLD@00               021D
+
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   24
+SUBROUTINE DRWDMG     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+
+Symbol Cross-Reference Listing - Reference types:
+ =-Assigned; /-DATA; d-DO Index; f-FORMAT Usage; i-Input; o-Output; r-Argument; s-Specified; u-Used
+_______________________________________________________________________________________________________________________________Name     Type       Class      Area Offset  Line (I include file)<reference type - see above>
+
+C        INTEGER    VARIABLE                 444s  458=  464u
+Craft    CHAR*10    ARRAY       1    018B    445s  449/  463u  464u
+Debc     CHAR*1     ARRAY       1    0219    447s  455/  471u
+Debx     INTEGER    ARRAY       1    01F9    446s  453/  471u
+Deby     INTEGER    ARRAY       1    0209    446s  454/  471u
+Drwdmg              SUBROUTINE               440s
+I        INTEGER    VARIABLE    0  BP+FFF4   444s  461d  463u  464u  464u  470d  471u  471u  471u
+J        INTEGER    VARIABLE    0  BP+FFF0   444s  462d  463u  463u  464u  464u  464u
+R        INTEGER    VARIABLE                 444s  457=  464u
+Screen   CHAR*1     ARRAY                    440r  443s  464=  471=
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   25
+SUBROUTINE DRWDMG     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+
+Label Cross-Reference Listing - Reference types:
+ a-ASSIGN; d-DO Label; @-FORMAT Statement; f-FORMAT Usage; g-GOTO; i-IF; s-Specified; r-Argument
+_______________________________________________________________________________________________________________________________Label        Line (I include file)<reference type - see above>
+
+00100        461d  467s
+00110        462d  466s
+00120        470d  472s
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   26
+SUBROUTINE DRWCSH     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+Source file Listing
+
+      476        
+      477        
+      478  C     ****************************************************************
+      479  C     *                 SUBROUTINE DRWCSH                            *
+      480  C     *              Draw crash landing explosion                    *
+      481  C     ****************************************************************
+      482        
+      483        SUBROUTINE DRWCSH(SCREEN)
+      484        
+      485        IMPLICIT NONE
+      486        CHARACTER*1 SCREEN(24,70)
+      487        INTEGER R, C, I, J, K
+      488        CHARACTER*10 EXPLO(5)
+      489        CHARACTER*7 WRECK(6)
+      490        CHARACTER*6 FIRE(2)
+      491        CHARACTER*5 BOOM
+      492        INTEGER DEBX(14), DEBY(14), CRATX(4), CRATY(4)
+      493        CHARACTER*1 DEBC(14), CRATC(4)
+      494        
+      495        DATA EXPLO /' .  *  . *', '*  .  *  .', '  *  .  * ',
+      496       >            '*  .  *  .', ' . *  . * '/
+      497        DATA BOOM /'BOOM!'/
+      498        DATA FIRE /' ~}{~ ', ' }~{  '/
+      499        DATA WRECK /'\|/*\|/', '--XXX--', 'XXXXXXX', '\-X*X-/',
+      500       >            '  /*|\ ', '       '/
+      501        DATA DEBX /27, 28, 43, 44, 26, 27, 28, 42, 43, 44, 28, 29,
+      502       >           41, 42/
+      503        DATA DEBY /10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 12, 12,
+      504       >           12, 12/
+      505        DATA DEBC /'/', '-', '\', '-', '|', '[', 'U', 'S', ']', '|',
+      506       >           '(', 'V', ')', '='/
+      507        DATA CRATX /33, 34, 35, 36/
+      508        DATA CRATY /18, 19, 19, 18/
+      509        DATA CRATC /':', '.', '.', ':'/
+      510        
+      511        R = 12
+      512        C = 35
+      513        
+      514  C     Explosion cloud (rows R-4 to R-1)
+      515        DO 100 I = 1, 5
+      516           DO 110 J = 1, 10
+      517              IF (EXPLO(I)(J:J) .NE. ' ') THEN
+      518                 SCREEN(R-5+I,C-5+J-1) = EXPLO(I)(J:J)
+      519              END IF
+      520  110      CONTINUE
+      521  100   CONTINUE
+      522        
+      523  C     BOOM text
+      524        DO 120 J = 1, 5
+      525           SCREEN(R-2,C-2+J-1) = BOOM(J:J)
+      526  120   CONTINUE
+      527        
+      528  C     Fire (rows R to R+1)Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   27
+SUBROUTINE DRWCSH     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+Source file Listing
+
+
+      529        DO 130 I = 1, 2
+      530           DO 140 J = 1, 6
+      531              IF (FIRE(I)(J:J) .NE. ' ') THEN
+      532                 SCREEN(R-1+I,C-3+J-1) = FIRE(I)(J:J)
+      533              END IF
+      534  140      CONTINUE
+      535  130   CONTINUE
+      536        
+      537  C     Main wreckage (rows R+2 to R+5)
+      538        DO 150 I = 1, 6
+      539           DO 160 J = 1, 7
+      540              IF (WRECK(I)(J:J) .NE. ' ') THEN
+      541                 SCREEN(R+1+I,C-3+J-1) = WRECK(I)(J:J)
+      542              END IF
+      543  160      CONTINUE
+      544  150   CONTINUE
+      545        
+      546  C     Scattered debris
+      547        DO 170 K = 1, 14
+      548           SCREEN(DEBY(K),DEBX(K)) = DEBC(K)
+      549  170   CONTINUE
+      550        
+      551  C     Impact crater
+      552        DO 180 K = 1, 4
+      553           SCREEN(CRATY(K),CRATX(K)) = CRATC(K)
+      554  180   CONTINUE
+      555        
+      556  C     Crater rim
+      557        DO 190 J = 32, 37
+      558           SCREEN(19,J) = '-'
+      559  190   CONTINUE
+      560        
+      561  C     Ejected rocks
+      562        SCREEN(18,27) = 'o'
+      563        SCREEN(18,42) = 'o'
+      564        SCREEN(19,26) = '^'
+      565        SCREEN(19,43) = '^'
+      566        
+      567        RETURN
+      568        END
+
+Storage Area Definitions
+_______________________________________________________________________________________________________________________________Number  Name or Description     Segment Name          Hex Length
+
+    0   Local Stack                                      0030
+    1   SAVEd Local Data        @DRAWLD@00               032C
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   28
+SUBROUTINE DRWCSH     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+
+Symbol Cross-Reference Listing - Reference types:
+ =-Assigned; /-DATA; d-DO Index; f-FORMAT Usage; i-Input; o-Output; r-Argument; s-Specified; u-Used
+_______________________________________________________________________________________________________________________________Name     Type       Class      Area Offset  Line (I include file)<reference type - see above>
+
+Boom     CHAR*5     VARIABLE    1    0285    491s  497/  525u
+C        INTEGER    VARIABLE                 487s  512=  518u  525u  532u  541u
+Cratc    CHAR*1     ARRAY       1    0328    493s  509/  553u
+Cratx    INTEGER    ARRAY       1    02FA    492s  507/  553u
+Craty    INTEGER    ARRAY       1    030A    492s  508/  553u
+Debc     CHAR*1     ARRAY       1    031A    493s  505/  548u
+Debx     INTEGER    ARRAY       1    028A    492s  501/  548u
+Deby     INTEGER    ARRAY       1    02C2    492s  503/  548u
+Drwcsh              SUBROUTINE               483s
+Explo    CHAR*10    ARRAY       1    021D    488s  495/  517u  518u
+Fire     CHAR*6     ARRAY       1    0279    490s  498/  531u  532u
+I        INTEGER    VARIABLE    0  BP+FFF4   487s  515d  517u  518u  518u  529d  531u  532u  532u  538d  540u  541u  541u
+J        INTEGER    VARIABLE    0  BP+FFF0   487s  516d  517u  517u  518u  518u  518u  524d  525u  525u  525u  530d  531u  531u
+                                             532u  532u  532u  539d  540u  540u  541u  541u  541u  557d  558u
+K        INTEGER    VARIABLE    0  BP+FFEC   487s  547d  548u  548u  548u  552d  553u  553u  553u
+R        INTEGER    VARIABLE                 487s  511=  518u  525u  532u  541u
+Screen   CHAR*1     ARRAY                    483r  486s  518=  525=  532=  541=  548=  553=  558=  562=  563=  564=  565=
+Wreck    CHAR*7     ARRAY       1    024F    489s  499/  540u  541u
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   29
+SUBROUTINE DRWCSH     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+
+Label Cross-Reference Listing - Reference types:
+ a-ASSIGN; d-DO Label; @-FORMAT Statement; f-FORMAT Usage; g-GOTO; i-IF; s-Specified; r-Argument
+_______________________________________________________________________________________________________________________________Label        Line (I include file)<reference type - see above>
+
+00100        515d  521s
+00110        516d  520s
+00120        524d  526s
+00130        529d  535s
+00140        530d  534s
+00150        538d  544s
+00160        539d  543s
+00170        547d  549s
+00180        552d  554s
+00190        557d  559s
+Lahey Personal FORTRAN 77, Version 2.00    01/01/80  00:09:02                                                      Page   30
+SUBROUTINE CLRSCR     Compiling Options:/N0/N7/NC/ND/E/H/NU/X
+Source file Listing
+
+      569        
+      570        
+      571  C     ****************************************************************
+      572  C     *                    SUBROUTINE CLRSCR                         *
+      573  C     *                  Clear screen display                        *
+      574  C     ****************************************************************
+      575        
+      576        SUBROUTINE CLRSCR
+      577        
+      578        IMPLICIT NONE
+      579        INTEGER I
+      580        
+      581  C     Print blank lines to clear screen
+      582        
+      583        DO 100 I = 1, 6
+      584           WRITE(*,*)
+      585  100   CONTINUE
+      586        
+      587        RETURN
+      588       
+      589        END
+
+Storage Area Definitions
+_______________________________________________________________________________________________________________________________Number  Name or Description     Segment Name          Hex Length
+
+    0   Local Stack                                      001A
+
+
+Symbol Cross-Reference Listing - Reference types:
+ =-Assigned; /-DATA; d-DO Index; f-FORMAT Usage; i-Input; o-Output; r-Argument; s-Specified; u-Used
+_______________________________________________________________________________________________________________________________Name     Type       Class      Area Offset  Line (I include file)<reference type - see above>
+
+Clrscr              SUBROUTINE               576s
+I        INTEGER    VARIABLE    0  BP+FFF4   579s  583d
+
+
+Label Cross-Reference Listing - Reference types:
+ a-ASSIGN; d-DO Label; @-FORMAT Statement; f-FORMAT Usage; g-GOTO; i-IF; s-Specified; r-Argument
+_______________________________________________________________________________________________________________________________Label        Line (I include file)<reference type - see above>
+
+00100        583d  585s
