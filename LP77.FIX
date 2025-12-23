@@ -1,0 +1,81 @@
+;    Patches for LP77, version 2.00 as of January 19, 1990
+;	For users desiring to have the ability to  equivalence  character
+;	data  types  to  numeric data types, the following line should be
+;	uncommented.  i.e. remove the semi-colon
+;di flg:024 ff.
+pa d2:234 n0:790,001,n0:993,bss:60.
+pi  p3:1a18 n0:658,000,n0:658,000,n0:304.
+pi  p3:1a28 n0:b88.
+pi  p3:1a2c n0:658,000,n0:658,000,n0:658,000. 
+pi  x2:604 p2m:878.
+pi  p3:026 p3:234.
+pi  x2:c88 n0:710,007c.
+pi  x2:c8e x2:cc8.
+pa  x2:cf0 n0:95c,003,n0:95e,001,n0:38f,b000,n0:4e7,005,n0:4f3,o2:868,
+           n0:293,x2:cb4.
+pb  o2:a08 n0:4f0,tg:1774.
+; DON'T USE THE FOLLOWING PATCH WITH LP77.LIB's dated earlier than 7/25/88
+mi  p2m:6ff 46,37,52,45,57,4e,44.
+pa  o1:8ec n0:850,ffff,n0:62e,bss:09c.
+pb  o1:8f8 n0:bc4,n0:304,n0:864,ffff,n0:62e,bss:09c.
+pi  o1:904 n0:be4.
+pi  o1:90c n0:658,000.
+pb  i2:588 n0:904,0400,n0:992,bss:050.
+pa  x0:8ac p1m:c10,x0:8b0,n0:304,pcn:f3,n0:6ec,000.
+pi  q2:680 n0:4f2.
+pb  q2:680 n0:790,8000,n0:9c3,000.
+pa  ll:7bc n0:907,000.
+pb  o1:177c n0:304,bss:15c.
+pb  o1:1788 n0:b88,bss:15c.
+pi  x2:db6 da81.
+pi  i1:abc n0:38f.
+pa  i1:abc n0:4e7,006,n0:243,0fc.
+ma3 np:298 83,3e,bss:0cc,50,74,03,e9,mls:0ec.
+mi  np:2f2 ffa4.
+di  flg:010 01.
+pa  tg:09b4 n0:914,000,n0:293,tg:9d4.
+pi  tg:548 n0:38c,5c00,n0:658,000.
+pi  tg:558 n0:B88,BLK:03C.
+pi  tg:560 n0:4f0,tg:1688.
+pi  o2:1974 n0:290,tg:c64.
+pa x2:159c n0:906,a000.
+pa dc:164c n0:850,0ff,n0:9a3,000,n0:4f3,dc:1674,n0:293,dc:165c.
+pi  i1:a2c n0:afb,tmp:06c.
+pb  x0:0d0 n0:906,2800.
+pi  p2:780 n0:104.
+pa  p2:780 n0:710,060,p2m:307,052.
+pi  p2:79a 008.
+pb  p2:798 n0:97c,060,p2m:307,05a.
+pi  o2:107c n0:bcc,n0:990.
+pa  x2:0984 n0:5e4,0084.
+pi  tg:978 n0:6f8,000.
+pb q2:3e4 n0:293,q2:3e8,n0:95c,005,n0:977,003,n0:4e7,003.
+pi  o1:118a o1:11f0.
+pi  er:c94 n0:404.
+pi  er:ca4 n0:404.
+pi  tg:1126 c2:674.
+pa  o2:3f4 n0:904,0400,n0:4f3,q2:0b4.
+pb ll:1d4 n0:764,005,n0:293,ll:1bc.
+pa  o1:530 n0:6bf,0fc.
+mb3 oi:5d9 26,c6,47,05,00.
+mi  n0:05c 76,04,90,90.             
+ma4 n0:05c 3b,87,vlt:202.           
+mi  p2m:576 b8.
+pi  o2:b82 i2:ad4,n0:658,000.
+pi  o2:14bc n0:292,o2:14c0.
+pa  o2:14bc n0:724,064,n0:4f0,x2:17fc,n0:2cf,064.
+pb  x2:10e8 n0:95c,003,n0:4e7,001.
+pb  x2:1118 n0:95c,003,n0:4e7,001.
+pi  x2:15a6 003.
+pa  x2:0e44 n0:906,a000.
+mi  np:096 1e.                     
+pi  dc:14a0  n0:4f0,dc:163c,n0:290 dc:14c0.     
+pi  x1:094 n0:658,000.			
+pi  x1:0e8 n0:658,000.			
+pi  x1:118 n0:658,000.			
+mi  p1m:575 78,06.                  
+pi  dc:02b6 d1:408.			
+pb  dc:02b4 n0:afb,flg:06d.		
+pi  o1:1170 n0:b0c,000.			
+pa  o1:1174 n0:710,060,n0:b0f,flg:033.	
+mi  oi:04c eb,12.			
